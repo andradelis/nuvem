@@ -16,7 +16,7 @@ class ANA:
         pass
     
     
-    def obter_serie_vazoes(self, cod_estacao: int, data_inicial: str = "", data_final: str = "") -> pd.DataFrame:
+    def obter_vazoes(self, cod_estacao: int, data_inicial: str = "", data_final: str = "") -> pd.DataFrame:
         """
         Obtenção da série histórica de um posto fluviométrico.
         Caso não haja dados em algum intervalo do período solicitado, retorna todos os dados disponíveis.
