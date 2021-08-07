@@ -1,6 +1,26 @@
 import pandas as pd
 import numpy as np
 
+def solidos(c: float, serie: pd.Series) -> float:
+    """
+    Cálculo da vazão de sólidos em suspensão.
+    
+    Parameters
+    ----------
+    c : float
+        Concentração de sólidos em suspensão média (mg/L).
+    
+    serie : pd.Series
+        Série de vazões do posto (m³/s).
+        
+    Returns
+    -------
+    float
+        Valor da vazão de sólidos em suspensão (ton/dia).
+    """
+    mlt = serie.mean()
+    return 0.0864*mlt*c
+
 def mlt(serie: pd.Series) -> pd.Series:
     """
     Obtenção da média mensal de longo termo de uma série de dados.
@@ -8,7 +28,7 @@ def mlt(serie: pd.Series) -> pd.Series:
     Parameters
     ----------
     serie : pd.Series
-        Série de vazões do posto.
+        Série de vazões do posto (m³/s).
         
     Returns
     -------
