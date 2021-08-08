@@ -2,6 +2,77 @@ import pandas as pd
 import numpy as np
 from typing import List
 
+def runoff(Vs: float, V: float) -> float:
+    """
+    Cálculo do coeficiente de escoamento superficial.
+    
+    O coeficiente de run-off expressa a razão entre o volume de água escoado superficialmente
+    e o volume de água precipitado em uma bacia hidrográfica de área. Varia com as 
+    características da bacia, visto que bacias impermeáveis geram maior escoamento superficial 
+    relativamente. 
+    O coeficiente pode ser entendido como uma média de quanto da chuva é transformada em vazão.
+
+    Parameters
+    ----------
+    Vs : float
+        Volume de água escoado superficialmente ou precipitado na porção.
+
+    V : float
+        Volume de água precipitado na bacia hidrográfica.
+
+    Returns
+    -------
+    float
+        Coeficiente de escoamento superficial.
+    """
+    return Vs/V
+
+
+def fforma(A: float, L: float) -> float:
+    """
+    Cálculo de propensão de enchentes de uma bacia hidrográfica.
+    
+    O fator de forma expressa a relação entre a área da bacia e um quadrado de lado
+    igual ao comprimento axial da bacia, expressando a capacidade da bacia em gerar 
+    enchentes. Quanto mais próximo de 1, maior a propensão a enchentes, pois a bacia
+    fica cada vez mais próxima de um quadrado.
+    
+    Example
+    -------
+    
+    Considerando duas bacias, A e B.
+    
+    
+        $ # área e comprimento da bacia A em km² e km
+        $ area_a = 100
+        $ comp_a = 13
+        $
+        $ # área e comprimento da bacia B em km² e km
+        $ area_b = 100
+        $ comp_b = 25
+        $
+        $ indice_a = fforma(area_a, comp_a)
+        $ indice_b = fforma(area_b, comp_b)
+
+
+    Segundo o exemplo acima, temos que indice A = 0.59 e indice B = 0.16. Logo, a bacia 
+    A tem maior propensão a enchentes que a bacia B.
+
+    Parameters
+    ----------
+    L : float
+        Comprimento axial da bacia ou total do curso d’água principal (km).
+
+    A : float
+        Área de drenagem da bacia (km²)
+        
+    Returns
+    -------
+    float
+        Fator de forma da bacia.
+    """
+    return A/L**2
+
 def convolucao(chuvas: List[float], vazoes: pd.DataFrame) -> pd.DataFrame:
     """
     Cálculo da resposta de uma bacia hidrográfica a um evento de chuva.
@@ -22,7 +93,7 @@ def convolucao(chuvas: List[float], vazoes: pd.DataFrame) -> pd.DataFrame:
         $ tabela = {1:.5, 2: 2, 3: 4, 4: 7, 5: 5, 6: 3, 7: 1.8, 9: 1.5, 10: 1}
         $ hu = pd.DataFrame.from_dict(tabela, orient = 'index')
         $ chuva = [20, 25, 10]
-        $ convolucao(chuva=chuva, vazoes=hu)
+        $ convolucao(chuvas=chuva, vazoes=hu)
 
 
     O método retornará a resposta da bacia, calculada por convolução, em função da 
@@ -31,7 +102,7 @@ def convolucao(chuvas: List[float], vazoes: pd.DataFrame) -> pd.DataFrame:
 
     Parameters
     ----------
-    chuva : List[float]
+    chuvas : List[float]
         Blocos de precipitação efetiva.
 
     vazoes : pd.DataFrame
@@ -136,24 +207,24 @@ def mlt(serie: pd.Series) -> pd.Series:
     """
     return serie.groupby(serie.index.month).mean()
 
-def curva_chave(cotas: pd.Series, vazoes: pd.Series, grau: int = 2) -> np.ndarray:
+def curva_chave(cotas: pd.Series, vazoes: pd.Series, grau: int = 2) -> Tuple[np.ndarray, np.ndarray]:
     """
     Determinação dos coeficientes da curva chave de um rio, a partir das séries de cotas e vazões.
     
     Parameters
     ----------
-    cotas: pd.Series
+    cotas : pd.Series
         série de cotas do posto fluviométrico.
         
-    vazoes: pd.Series
+    vazoes : pd.Series
         série de vazões do posto fluviométrico.
         
-    grau: int
+    grau : int
         grau do polinômio de regressão.
     
     Returns
     -------
-        (np.ndarray, np.ndarray): tupla contendo:
+        Tuple[np.ndarray, np.ndarray]
             1. array de valores no eixo y da função que melhor traduz a curva chave de um rio;
             2. coeficientes do polinômio de regressão.
     """
