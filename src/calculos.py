@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
+from typing import List
 
-def convolucao(chuva: List[float], vazoes:pd.DataFrame) -> pd.DataFrame:
+def convolucao(chuva: List[float], vazoes: pd.DataFrame) -> pd.DataFrame:
     """
     Cálculo da resposta de uma bacia hidrográfica a um evento de chuva.
 
@@ -18,10 +19,10 @@ def convolucao(chuva: List[float], vazoes:pd.DataFrame) -> pd.DataFrame:
     suas respectivas vazões (m³/s/10mm), e a chuva efetiva em mm:
 
 
-    $ tabela = {1:.5, 2: 2, 3: 4, 4: 7, 5: 5, 6: 3, 7: 1.8, 9: 1.5, 10: 1}
-    $ hu = pd.DataFrame.from_dict(tabela, orient = 'index')
-    $ chuva = [20, 25, 10]
-    $ convolucao(chuva=chuva, vazoes=hu)
+        $ tabela = {1:.5, 2: 2, 3: 4, 4: 7, 5: 5, 6: 3, 7: 1.8, 9: 1.5, 10: 1}
+        $ hu = pd.DataFrame.from_dict(tabela, orient = 'index')
+        $ chuva = [20, 25, 10]
+        $ convolucao(chuva=chuva, vazoes=hu)
 
 
     O método retornará a resposta da bacia, calculada por convolução, em função da 
@@ -31,10 +32,15 @@ def convolucao(chuva: List[float], vazoes:pd.DataFrame) -> pd.DataFrame:
     Parameters
     ----------
     chuva : List[float]
-    Blocos de precipitação efetiva.
+        Blocos de precipitação efetiva.
 
     vazoes : pd.DataFrame
-    Hidrograma unitário discreto.
+        Hidrograma unitário discreto.
+    
+    Returns
+    -------
+    pd.DataFrame
+        Hidrograma resultante da bacia para o evento de chuva.
     """
     multiplo = 10
     chuva_efetiva = [chuva / multiplo for chuva in chuvas]
