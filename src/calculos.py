@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import List
 
-def convolucao(chuva: List[float], vazoes: pd.DataFrame) -> pd.DataFrame:
+def convolucao(chuvas: List[float], vazoes: pd.DataFrame) -> pd.DataFrame:
     """
     Cálculo da resposta de uma bacia hidrográfica a um evento de chuva.
 
