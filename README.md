@@ -68,3 +68,7 @@ cotas = ana_.obter_cotas(posto)
 ### Estatísticas gerais de uma série
 ![alt text](https://github.com/andradelis/hidro-os/blob/main/exemplos/serie_mlt.png?raw=true)
 
+
+### Hidrograma de cheias
+![alt text](https://github.com/andradelis/hidro-os/blob/main/exemplos/hidrograma.png?raw=true)
+
