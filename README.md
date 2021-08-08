@@ -1,23 +1,47 @@
-# :construction: hidro-os
-Repositório destinado a compartilhar meus aprendizados na área de hidrologia.
+# chuvisco
 
-## Uso
+![texto](https://img.shields.io/static/v1?label=linguagem&message=python&color=green&style=flat-square "linguagem")
 
-O repositório está em construção! Mas, caso deseje, é possível utilizar algumas funcionalidades. :)
-
-Para utilizar os métodos existentes, clone este repositório
-
-`git clone git@github.com:andradelis/dados-hidro.git`
-
-e instale as dependências necessárias
-
-`pip install -r requirements.txt`
-
-## Exemplos
+1. [Descrição](#descrição)  
+2. [Funcionalidades](#funcionalidades)  
+3. [Pré-requisitos](#pré-requisitos)  
+4. [Como instalar](#como-instalar)
+4. [Execução](#execucao)
 
 
-Por enquanto, é possível obter a série de vazões e a série de cotas de um posto específico a partir dos dados da Agência Nacional das Águas, e calcular a curva chave de um rio. Mais novidades em breve.
+## :scroll: Descrição
 
+Repositório em constante construção destinado a compartilhar aprendizados na área de hidrologia. Os métodos encontrados nos módulos disponíveis neste repositório são ferramentas que utilizo em meus estudos. Sinta-se livre para contribuir! :)
+
+
+## :sparkles: Funcionalidades
+
+:heavy_check_mark: Consumo da API da ANA: obtenção de cotas e séries de vazão de um posto fluviométrico
+
+:heavy_check_mark: Hidrograma de cheias por convolução
+
+:heavy_check_mark: Determinação da curva chave
+
+:heavy_check_mark: Cálculos hidrológicos básicos: fator de forma, coeficiente de runoff...
+
+## :warning: Pré-requisitos
+
+- [Python](https://www.python.org/) (obrigatório)
+
+## :cd: Como instalar
+
+```bash
+# 1. no terminal, clone o projeto
+git clone git@github.com:andradelis/chuvisco.git
+
+# 2. entre na pasta do projeto
+cd chuvisco
+
+# 3. instale as dependências
+pip install -r requirements.txt
+```
+
+## :arrow_forward: Execução
 ### Acesso aos dados disponibilizados na API da Agência Nacional das Águas.
 
 ```
@@ -72,8 +96,5 @@ ax.set_ylabel("Vazão (m³/s)")
 ax.set_xlabel("Cota (m)")
 ax.legend()
 ```
-
 ![alt text](https://github.com/andradelis/hidro-os/blob/main/exemplos/curva_chave.png?raw=true)
-
-
 
