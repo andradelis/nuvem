@@ -2,6 +2,90 @@ import pandas as pd
 import numpy as np
 from typing import List
 
+def stats(serie: pd.DataFrame, base: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cálculo das estatísticas gerais de uma série de dados.
+    
+    Parameters
+    ----------
+    serie : pd.DataFrame
+        Série de dados.
+        
+    base : pd.DataFrame
+        Base para o cálculo da anomalia.
+        
+    Returns
+    -------
+    pd.DataFrame
+        Estatísticas gerais de uma série de dados.
+    """
+    mlt = base.groupby(base.index.month).mean()
+    maximos = serie.groupby(serie.index.month).max()
+    minimos = serie.groupby(serie.index.month).min()
+    
+    maximos.index = pd.to_datetime(maximos.index, format="%m")
+    minimos.index = pd.to_datetime(minimos.index, format="%m")
+    mlt.index = pd.to_datetime(mlt.index, format="%m")
+    
+    base_ = pd.concat([mlt, maximos, minimos], axis=1)
+    base_.columns = ["mlt", "maximo", "minimo"]
+    
+    base_.reset_index(inplace=True)
+    serie_ = serie.reset_index()
+    
+    base = base_.assign(mes = base_['index'].dt.strftime("%m"))
+    serie = serie_.assign(mes = serie_['index'].dt.strftime("%m"))
+    
+    stats = pd.merge(serie, base, how="left", on="mes")
+    stats = stats.assign(anomalia = stats.vazoes - stats.mlt)
+    stats = stats.assign(residual = stats.anomalia / stats.mlt)
+    stats = stats.assign(rippl = np.cumsum(stats.residual))
+    
+    stats.rename({"index_x": "data"}, axis=1, inplace = True)
+    stats.drop(["mes", "index_y"], axis=1, inplace = True)
+    stats.set_index("data", inplace = True)
+    return stats
+    
+def anomalia(serie: pd.DataFrame, base: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cálculo de anomalia.
+    
+    Parameters
+    ----------
+    serie : pd.DataFrame
+        Série de dados.
+        
+    base : pd.DataFrame
+        Base para o cálculo da anomalia.
+        
+    Returns
+    -------
+    pd.DataFrame
+        Série de anomalias.
+    """
+    df = stats(serie=serie, base=base)
+    return df.anomalia
+
+def rippl(serie: pd.DataFrame, base: pd.DataFrame) -> pd.DataFrame:
+    """
+    Cálculo do diagrama de massa residual.
+    
+    Parameters
+    ----------
+    serie : pd.DataFrame
+        Série de dados.
+        
+    base : pd.DataFrame
+        Base para o cálculo da anomalia.
+        
+    Returns
+    -------
+    pd.DataFrame
+        Série de rippl.
+    """
+    df = stats(serie=serie, base=base)
+    return df.rippl
+
 def runoff(Vs: float, V: float) -> float:
     """
     Cálculo do coeficiente de escoamento superficial.
