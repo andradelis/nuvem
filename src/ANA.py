@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import requests
 import xml.etree.ElementTree as ET
+from typing import Union
 
 class ANA:
     """Classe de requisições da API da ANA."""
@@ -15,6 +16,55 @@ class ANA:
         """Inicialização da classe de consumo da API."""
         pass
     
+    @classmethod
+    def inventario(self, codigo: str = '', tipoest: Union[str, int] = '') -> pd.DataFrame:
+        """
+        Obtém o inventário de postos da ANA.
+        
+        Obs: Caso nenhum parâmetro seja passado, será retornado o inventário completo.
+        
+        Parameters
+        ----------
+        codigo : str
+            Código de 8 dígitos de um posto específico.
+        
+        tipoest : int
+            Tipo de estação. (1: Fluviométrico; 2: Pluviométrico).
+            
+        Returns
+        -------
+        pd.DataFrame
+            Inventário de postos.
+        """
+        url_requisicao = f"{self.url_base}/HidroInventario?codEstDE={codigo}&codEstATE=&tpEst={tipoest}&nmEst=&nmRio=&codSubBacia=&codBacia=&nmMunicipio=&nmEstado=&sgResp=&sgOper=&telemetrica="
+
+        resposta = requests.get(url_requisicao)
+
+        tree = ET.ElementTree(ET.fromstring(resposta.content))
+        root = tree.getroot()
+
+        estacoes = list()
+        for estacao in root.iter("Table"):    
+            dados = { 
+                'latitude': [estacao.find("Latitude").text],
+                'longitude': [estacao.find("Longitude").text],
+                'altitude': [estacao.find("Altitude").text],
+                'codigo': [estacao.find("Codigo").text],
+                'nome': [estacao.find("Nome").text],
+                'estado': [estacao.find("nmEstado").text],
+                'municipio': [estacao.find("nmMunicipio").text],
+                'responsavel': [estacao.find("ResponsavelSigla").text],
+                'ultima_att': [estacao.find("UltimaAtualizacao").text],
+                'tipo': [estacao.find("TipoEstacao").text],
+            }
+
+            df = pd.DataFrame.from_dict(dados)
+            df.set_index("codigo", inplace=True)
+            estacoes.append(df)
+
+        inventario = pd.concat(estacoes)
+        
+        return inventario
     
     def obter_vazoes(self, cod_estacao: int, data_inicial: str = "", data_final: str = "") -> pd.DataFrame:
         """
