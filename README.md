@@ -46,7 +46,7 @@ pip install -r requirements.txt
 
 ```python
 # importação da biblioteca
-from src.ANA import ANA
+from chuvisco.ANA import ANA
 
 # posto fluviométrico Queluz
 posto = 58235100

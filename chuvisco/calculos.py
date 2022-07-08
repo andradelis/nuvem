@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from typing import List
+from typing import Tuple
 
 def stats(serie: pd.DataFrame, base: pd.DataFrame) -> pd.DataFrame:
     """
