@@ -2,99 +2,106 @@
 
 import calendar
 import xml.etree.ElementTree as ET
-
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
 import requests
+import timeless
+
+from chuvisco.ANA import utils
+from chuvisco.ANA.config import config
 
 
 class ANA:
     """Classe de requisições da API da ANA."""
 
-    url_base = "http://telemetriaws1.ana.gov.br/ServiceANA.asmx"
-
     def __init__(self) -> None:
         """Inicialização da classe de consumo da API."""
         pass
 
-    @classmethod
-    def inventario(
+    def inventario_plu(
         self,
-        codigo: str = "",
-        tipoest: Union[str, int] = "",
-        telemetrica: Union[str, int] = 1,
+        codigo: Union[str, int] = "",
+        convencional: bool = True,
+        telemetrica: bool = True,
     ) -> pd.DataFrame:
         """
-        Obtém o inventário de postos da ANA.
+        Obtém o inventário de postos pluviométricos da ANA.
 
         Obs: Caso nenhum parâmetro seja passado, será retornado o inventário completo.
 
         Parameters
         ----------
-        codigo : str
+        codigo : Union[str, int]
             Código de 8 dígitos de um posto específico.
 
-        tipoest : int
-            Tipo de estação. (1: Fluviométrico; 2: Pluviométrico).
-
         telemetrica : bool
-            1 caso seja desejado apenas telemétricas, 0 caso contrário. '' para obter
-            todas.
+            Se o usuário deseja dados de postos telemétricos.
+
+        convencional : bool
+            Se o usuário deseja dados de postos convencionais.
 
         Returns
         -------
         pd.DataFrame
-            Inventário de postos.
+            Inventário de postos pluviométricos.
         """
-        url_requisicao = f"{self.url_base}/HidroInventario?codEstDE={codigo}&codEstATE=&tpEst={tipoest}&nmEst=&nmRio=&codSubBacia=&codBacia=&nmMunicipio=&nmEstado=&sgResp=&sgOper=&telemetrica={telemetrica}"
+        inventario = utils.obter_inventario(
+            codigo=codigo,
+            telemetrica=telemetrica,
+            convencional=convencional,
+            tipo_estacao=config.arg_plu,
+        )
 
-        resposta = requests.get(url_requisicao)
+        for coordenada in ["latitude", "longitude"]:
+            inventario[coordenada] = pd.to_numeric(inventario[coordenada])
+        return inventario
 
-        tree = ET.ElementTree(ET.fromstring(resposta.content))
-        root = tree.getroot()
+    def inventario_flu(
+        self,
+        codigo: Union[str, int] = "",
+        convencional: bool = True,
+        telemetrica: bool = True,
+    ) -> pd.DataFrame:
+        """
+        Obtém o inventário de postos fluviométricos da ANA.
 
-        estacoes = list()
-        for estacao in root.iter("Table"):
-            dados = {
-                "latitude": [estacao.find("Latitude").text],
-                "longitude": [estacao.find("Longitude").text],
-                "altitude": [estacao.find("Altitude").text],
-                "codigo": [estacao.find("Codigo").text],
-                "nome": [estacao.find("Nome").text],
-                "estado": [estacao.find("nmEstado").text],
-                "municipio": [estacao.find("nmMunicipio").text],
-                "responsavel": [estacao.find("ResponsavelSigla").text],
-                "ultima_att": [estacao.find("UltimaAtualizacao").text],
-                "tipo": [estacao.find("TipoEstacao").text],
-                "data_ins": [estacao.find("DataIns").text],
-                "data_alt": [estacao.find("DataAlt").text],
-            }
-            if telemetrica:
-                dados.update(
-                    {
-                        "inicio_telemetria": [
-                            estacao.find("PeriodoTelemetricaInicio").text
-                        ],
-                        "fim_telemetria": [estacao.find("PeriodoTelemetricaFim").text],
-                    }
-                )
+        Obs: Caso nenhum parâmetro seja passado, será retornado o inventário completo.
 
-            df = pd.DataFrame.from_dict(dados)
-            df.set_index("codigo", inplace=True)
-            estacoes.append(df)
+        Parameters
+        ----------
+        codigo : Union[str, int]
+            Código de 8 dígitos de um posto específico.
 
-        inventario = pd.concat(estacoes)
+        telemetrica : bool
+            Se o usuário deseja dados de postos telemétricos.
 
+        convencional : bool
+            Se o usuário deseja dados de postos convencionais.
+
+        Returns
+        -------
+        pd.DataFrame
+            Inventário de postos fluviométricos.
+        """
+        inventario = utils.obter_inventario(
+            codigo=codigo,
+            telemetrica=telemetrica,
+            convencional=convencional,
+            tipo_estacao=config.arg_flu,
+        )
+
+        for coordenada in ["latitude", "longitude"]:
+            inventario[coordenada] = pd.to_numeric(inventario[coordenada])
         return inventario
 
     def obter_chuva(
         self,
-        cod_estacao: int,
-        data_inicial: str = "",
-        data_final: str = "",
-        consistencia: int = 2,
+        codigo: Union[str, int],
+        data_inicial: Optional[timeless.datetime] = None,
+        data_final: Optional[timeless.datetime] = None,
+        consistido: bool = True,
     ) -> pd.DataFrame:
         """
         Obtém a série histórica de um posto pluviométrico.
@@ -103,20 +110,31 @@ class ANA:
 
         Parameters
         ----------
-        cod_estacao : str
+        codigo : Union[str, int]
             Código da estação fluviométrica.
 
-        data_inicial : str
-            Data de início do intervalo, no formato dd/mm/yyyy.
+        data_inicial : Optional[timeless.datetime]
+            Data de início do intervalo.
 
-        data_final : str
-            Data final do intervalo, no formato dd/mm/yyyy.
+        data_final : Optional[timeless.datetime]
+            Data final do intervalo.
+
+        consistido : bool
+            Se a série de chuva está consistida.
 
         Returns
         -------
             pd.DataFrame: Dataframe contendo a série de vazões do posto, o nível máximo, médio e mínimo de cada mês e a consistência do dado (1: não consistido; 2: consistido)
         """
-        url_requisicao = f"{self.url_base}/HidroSerieHistorica?CodEstacao={cod_estacao}&dataInicio={data_inicial}&dataFim={data_final}&tipoDados=2&nivelConsistencia={consistencia}"
+        consistencia = 2 if consistido else 1
+        data_inicial_str = data_inicial.format("%d/%m/%Y")
+        data_final_str = data_final.format("%d/%m/%Y")
+
+        url_requisicao = (
+            f"{config.url_base}/HidroSerieHistorica?CodEstacao={codigo}&"
+            f"dataInicio={data_inicial_str}&dataFim={data_final_str}&tipoDados=2"
+            f"&nivelConsistencia={consistencia}"
+        )
         resposta = requests.get(url_requisicao)
 
         tree = ET.ElementTree(ET.fromstring(resposta.content))
@@ -142,15 +160,15 @@ class ANA:
                 dado = mes.find(chuva).text
 
                 dados.append(dado)
-            df = pd.DataFrame({cod_estacao: dados}, index=datas)
+            df = pd.DataFrame({codigo: dados}, index=datas)
             df_mes.append(df)
 
         try:
             serie = pd.concat(df_mes)
             serie.sort_index(inplace=True)
-            serie[cod_estacao] = pd.to_numeric(serie[cod_estacao])
+            serie[codigo] = pd.to_numeric(serie[codigo])
         except (ValueError):
-            serie = pd.DataFrame([], columns=[cod_estacao])
+            serie = pd.DataFrame([], columns=[codigo])
 
         return serie
 
@@ -281,3 +299,6 @@ class ANA:
         serie.cota = serie.cota / 100
 
         return serie
+
+
+ana = ANA()
