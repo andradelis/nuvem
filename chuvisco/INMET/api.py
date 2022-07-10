@@ -94,7 +94,8 @@ class INMET:
 
         Returns
         -------
-            List[Dict[str, str]] : dados horários referentes a uma estação automática ou manual.
+        List[Dict[str, str]]
+            dados horários referentes a uma estação automática ou manual.
         """
         data_inicial_str = data_inicial.format("%Y-%m-%d")
         data_final_str = data_final.format("%Y-%m-%d")
