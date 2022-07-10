@@ -18,6 +18,25 @@ class INMET:
         """Inicialização da classe de consumo da API."""
         pass
 
+    @property
+    def variaveis(self) -> Dict[str, str]:
+        """
+        Mapeamento de variáveis disponibilizadas pela API.
+        
+        As variáveis podem ser utilizadas para que sejam escolhidas no
+        dataframe de dados de uma estação específica.
+        """
+        return {
+            "chuva": config.arg_chuva,
+            "pressão": config.arg_pressao,
+            "temperatura máxima": config.arg_temp_max,
+            "temperatura mínima": config.arg_temp_min,
+            "temperatura média": config.arg_temp_med,
+            "umidade mínima": config.arg_umid_min,
+            "umidade média": config.arg_umid_med,
+            "velocidade média do vento": config.vento_med 
+        }
+
     def inventario(self, telemetrica: bool = True) -> pd.DataFrame:
         """
         Obtém todas as estações de acordo com o tipo de medição.
