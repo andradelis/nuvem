@@ -100,19 +100,19 @@ def converter_epsg(
     return contorno.to_crs(epsg=epsg)
 
 
-def recortar_postos_dentro_de_contorno(
-    postos: gpd.geodataframe.GeoDataFrame,
+def obter_pontos_no_contorno(
+    pontos: gpd.geodataframe.GeoDataFrame,
     contorno: Union[
         shapely.geometry.multipolygon.MultiPolygon, shapely.geometry.polygon.Polygon
     ],
 ) -> gpd.geodataframe.GeoDataFrame:
     """
-    Recorta os postos dentro de um contorno único.
+    Obtém as coordenadas de um dataframe dentro de um contorno.
 
     Parameters
     ----------
-    postos : gpd.geodataframe.GeoDataFrame
-        Série de geometrias dos postos indexados pelo código.
+    pontos : gpd.geodataframe.GeoDataFrame
+        Série de geometrias dos pontos.
 
     contorno : Union[
         shapely.geometry.multipolygon.MultiPolygon,
@@ -123,10 +123,10 @@ def recortar_postos_dentro_de_contorno(
     Returns
     -------
     gpd.geodataframe.GeoDataFrame
-        Lista de postos dentro do contorno.
+        Geodataframe de pontos dentro do contorno.
     """
-    recorte = postos.geometry.within(contorno)
-    return postos.loc[recorte]
+    recorte = pontos.geometry.within(contorno)
+    return pontos.loc[recorte]
 
 
 def zipar_coordenadas(
