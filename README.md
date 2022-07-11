@@ -18,16 +18,24 @@ Contribuições são bem vindas!
 Aqui você vai encontrar:
 
 :sparkles: Módulos para obtenção de dados de grandes centros!
-    1. API da ANA;
-    2. API do INMET;
-    3. FTP do CPTEC para dados do MERGE.
+
+1. API da ANA;
+
+2. API do INMET;
+
+3. FTP do CPTEC para dados do MERGE.
 
 :sparkles: Diversos cálculos hidrológicos
-    1. Hidrograma de cheias por convolução;
-    2. Determinação da curva chave;
-    3. Fator de forma;
-    4. Coeficiente de runoff;
-    5. etc...
+   
+   1. Hidrograma de cheias por convolução;
+   
+   2. Determinação da curva chave;
+   
+   3. Fator de forma;
+   
+   4. Coeficiente de runoff;
+   
+   5. etc...
 
 :sparkles: Módulos de utilidade para lidar com dados em grade e séries temporais.
 
