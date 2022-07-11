@@ -7,3 +7,4 @@ arquivos/
 *.dbf
 *.csv
 *.nc
+.mypy_cache
