@@ -95,25 +95,15 @@ class MERGE:
 
     def obter_chuva_no_contorno(
         self,
-        data_inicial: timeless.datetime,
-        data_final: timeless.datetime,
         contorno: gpd.geodataframe.GeoDataFrame,
         media_regional: bool = False,
         dados: Optional[Union[xr.Dataset, xr.DataArray]] = None,
-        dir_tmp: Path = Path("/tmp/merge"),
-        dimensao_tempo: str = "valid_time",
     ) -> Union[xr.Dataset, xr.DataArray, pd.DataFrame]:
         """
         Obtém a chuva do MERGE dentro de um contorno.
 
         Parameters
         ----------
-        data_inicial: timeless.datetime
-            Data inicial.
-
-        data_final : timeless.datetime
-            Data final.
-
         contorno : gpd.geodataframe.GeoDataFrame
             Contorno de onde serão extraídos os dados de chuva.
 
@@ -122,34 +112,15 @@ class MERGE:
             de chuva na área, em formato de dataframe. Caso False, são retornados os dados em grade originais.
 
         dados : Optional[Union[xr.Dataset, xr.DataArray]]
-            Dados do MERGE. Caso nenhum dataset seja passado, os dados do MERGE serão baixados no diretório
-            temporário passado para o parâmetro dir_tmp.
-
-        dir_tmp : Path
-            Diretório temporário onde será baixado o dataset do MERGE. O dataset é obtido através do
-            download do dataset em um diretório e posterior abertura do dataset para retorno da função.
+            Dados do MERGE.
 
         Returns
         -------
         Union[xr.Dataset, xr.DataArray, pd.DataFrame]
             Chuva do MERGE dentro do contorno.
         """
-        if isinstance(dados, xr.Dataset) or isinstance(dados, xr.DataArray):
-            ds = dados.sel(**{dimensao_tempo: slice(data_inicial, data_final)})
-        else:
-            self.baixar_dados_diarios(
-                data_inicial=data_inicial, data_final=data_final, dir_tmp=dir_tmp
-            )
-            arquivos_merge = list(dir_tmp.glob("*.grib2"))
-            ds = xr.open_mfdataset(
-                arquivos_merge,
-                concat_dim=dimensao_tempo,
-                combine="nested",
-                engine="cfgrib",
-            ).prec
-
         ds_lon_corrigida = grade.converter_longitude_para_limites_180(
-            dataset=ds,
+            dataset=dados,
         )
         dataset_recortado = grade.recortar_dataset_no_contorno(
             dataset=ds_lon_corrigida, contorno=contorno
@@ -174,6 +145,53 @@ class MERGE:
             return df_merge
 
         return dataset_recortado
+
+    def obter_postos_artificiais(
+        self,
+        dataset: Union[xr.Dataset, xr.DataArray],
+        prefixo: str = "PMERGE"
+    ) -> pd.DataFrame:
+        """
+        Obtém postos artificiais do merge.
+        
+        Para a determinação de postos artificiais, cada ponto de grade é considerado um posto.
+        O método retorna um dataframe onde cada coluna representa um ponto de grade, nomeado
+        com um prefixo passado como parametro, a longitude e a latitude do posto.
+        
+        Parameters
+        ----------
+        dataset : Union[xr.Dataset, xr.DataArray]
+            Dataset do MERGE.
+            
+        prefixo : str
+            Prefixo a ser passado no nome do posto artificial.
+            
+        Returns
+        -------
+        pd.DataFrame
+            Série temporal de cada ponto de grade dentro do dataset.
+        """    
+        dfs_merge = list()
+        for latitude in dataset.latitude.values:
+            ds_na_latitude = dataset.sel(latitude=latitude).dropna(dim="longitude")
+            for longitude in ds_na_latitude.longitude.values:
+                ds_na_coordenada = ds_na_latitude.sel(longitude=longitude)
+
+                nome_posto_artificial = (
+                    f"{prefixo}{str(round(longitude, 2)).replace('.', '_')}{str(round(latitude, 2)).replace('.', '_')}"
+                )
+                ds_na_coordenada = ds_na_coordenada.drop(
+                    ["longitude", "latitude", "time", "step", "surface", "spatial_ref"]
+                )
+                df = ds_na_coordenada.to_dataframe()
+                df.rename(columns={"prec": nome_posto_artificial}, inplace=True)
+                df.index.name = "data"
+                df.index = df.index.date
+                df.index = pd.to_datetime(df.index)
+                df = df.sort_index()
+                dfs_merge.append(df)
+
+        return pd.concat(dfs_merge, axis=1)
 
 
 merge = MERGE()
