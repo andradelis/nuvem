@@ -8,8 +8,8 @@ import pandas as pd
 import requests
 import timeless
 
-from chuvisco import geo
-from chuvisco.INMET.config import config
+from nuvem import geo
+from nuvem.INMET.config import config
 
 # Código baseado no manual de uso da API de estações e dados meteorológicos do INMET: https://portal.inmet.gov.br/manual/manual-de-uso-da-api-estações
 

@@ -10,9 +10,9 @@ import pandas as pd
 import requests
 import timeless
 
-from chuvisco import geo
-from chuvisco.ANA import utils
-from chuvisco.ANA.config import config
+from nuvem import geo
+from nuvem.ANA import utils
+from nuvem.ANA.config import config
 
 
 class ANA:

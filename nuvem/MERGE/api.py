@@ -11,8 +11,8 @@ import requests
 import timeless
 import xarray as xr
 
-from chuvisco import grade
-from chuvisco.MERGE.config import config
+from nuvem import grade
+from nuvem.MERGE.config import config
 
 
 class MERGE:
@@ -91,7 +91,7 @@ class MERGE:
         data_final: timeless.datetime,
         contorno: gpd.geodataframe.GeoDataFrame,
         media_regional: bool = False,
-        dir_dados: Optional[Path] = None,
+        dados: Optional[Union[xr.Dataset, xr.DataArray]] = None,
         dir_tmp: Path = Path("/tmp/merge"),
     ) -> Union[xr.Dataset, xr.DataArray, pd.DataFrame]:
         """
@@ -112,9 +112,9 @@ class MERGE:
             Se é desejado que seja extraída a média regional do dataset. Caso True, é retornada a média
             de chuva na área, em formato de dataframe. Caso False, são retornados os dados em grade originais.
 
-        dir_dados : Path
-            Diretório onde estão localizados os arquivos do MERGE. Caso nenhum diretório seja passado,
-            os dados do MERGE serão baixados no diretório temporário passado para o parâmetro dir_tmp.
+        dados : Optional[Union[xr.Dataset, xr.DataArray]]
+            Dados do MERGE. Caso nenhum dataset seja passado, os dados do MERGE serão baixados no diretório
+            temporário passado para o parâmetro dir_tmp.
 
         dir_tmp : Path
             Diretório temporário onde será baixado o dataset do MERGE. O dataset é obtido através do
@@ -125,17 +125,16 @@ class MERGE:
         Union[xr.Dataset, xr.DataArray, pd.DataFrame]
             Chuva do MERGE dentro do contorno.
         """
-        if dir_dados:
-            arquivos_merge = list(dir_dados.glob("*.grib2"))
+        if isinstance(dados, xr.Dataset) or isinstance(dados, xr.DataArray):
+            ds = dados
         else:
             self.obter_dados_diarios(
                 data_inicial=data_inicial, data_final=data_final, dir_tmp=dir_tmp
             )
             arquivos_merge = list(dir_tmp.glob("*.grib2"))
-
-        ds = xr.open_mfdataset(
-            arquivos_merge, concat_dim="valid_time", combine="nested", engine="cfgrib"
-        ).prec
+            ds = xr.open_mfdataset(
+                arquivos_merge, concat_dim="valid_time", combine="nested", engine="cfgrib"
+            ).prec
 
         ds_lon_corrigida = grade.converter_longitude_para_limites_180(
             dataset=ds,

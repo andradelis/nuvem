@@ -7,7 +7,7 @@ from xml.dom.minidom import Element
 import pandas as pd
 import requests
 
-from chuvisco.ANA.config import config
+from nuvem.ANA.config import config
 
 
 def obter_tipo_medicao(

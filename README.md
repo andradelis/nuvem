@@ -1,4 +1,4 @@
-# chuvisco
+# nuvem
 
 ![texto](https://img.shields.io/static/v1?label=linguagem&message=python&color=green&style=flat-square "linguagem")
 
@@ -32,10 +32,10 @@ Repositório em constante construção destinado a compartilhar aprendizados na 
 
 ```bash
 # 1. no terminal, clone o projeto
-git clone git@github.com:andradelis/chuvisco.git
+git clone git@github.com:andradelis/nuvem.git
 
 # 2. entre na pasta do projeto
-cd chuvisco
+cd nuvem
 
 # 3. instale as dependências
 pip install -r requirements.txt
@@ -46,7 +46,7 @@ pip install -r requirements.txt
 
 ```python
 # importação da biblioteca
-from chuvisco.ANA import ANA
+from nuvem.ANA import ANA
 
 # posto fluviométrico Queluz
 posto = 58235100
