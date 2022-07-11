@@ -312,6 +312,7 @@ class ANA:
         contorno: gpd.geodataframe.GeoDataFrame,
         telemetrica: bool = True,
         convencional: bool = True,
+        inventario_plu: Optional[pd.DataFrame] = None
     ) -> pd.DataFrame:
         """
         Obtém as séries de chuva dentro de um contorno.
@@ -335,6 +336,16 @@ class ANA:
             Se as estações são convencionais. Caso telemetrica=True e convencional=True,
             todas as estações serão retornadas.
 
+        inventario_plu : Optional[pd.DataFrame]
+            Diretório para o inventário de postos pluviométricos. Caso None, será obtido
+            o inventário de forma programática e efêmera, sem ser alocado em disco. O
+            inventário é necessário para a obtenção das coordenadas de todos os postos
+            disponíveis. Reitera-se que o inventário plu deve possuir, como index, o código
+            do posto ,e as colunas 'latitude' e 'longitude' para o funcionamento correto do
+            método. Passar o inventário como argumento também faz com que sejam ignorados
+            os argumentos passados para os parametros telemetria e convencional, uma vez que
+            não é possível inferir de antemão a formatação do inventário local. 
+
         Returns
         -------
         pd.DataFrame
@@ -342,9 +353,12 @@ class ANA:
         """
         ############################# ANA #################################
         # obtém todos os postos pluviométricos da ana
-        inventario_ana = self.inventario_plu(
-            convencional=convencional, telemetrica=telemetrica
-        )
+        if isinstance(inventario_plu, pd.DataFrame):
+            inventario_ana = inventario_plu
+        else:
+            inventario_ana = self.inventario_plu(
+                convencional=convencional, telemetrica=telemetrica
+            )
 
         # seleciona apenas as colunas de latitude e longitude.
         # neste ponto, são suficientes para fazer o recorte dos pontos dentro do contorno.

@@ -1,7 +1,7 @@
 """Módulo para obtenção de dados do Instituto Nacional de Meteorologia."""
 
 import math
-from typing import Dict, List
+from typing import Dict, Optional
 
 import geopandas as gpd
 import pandas as pd
@@ -174,6 +174,7 @@ class INMET:
         telemetrica: bool = True,
         convencional: bool = True,
         freq: str = "D",
+        inventario_plu: Optional[pd.DataFrame] = None
     ) -> pd.DataFrame:
         """
         Obtém as séries de chuva dentro de um contorno.
@@ -200,21 +201,34 @@ class INMET:
         freq : str
             Frequência dos dados. Pode ser H ou D, onde H se refere a dados horários e D, diários.
 
+        inventario_plu : Optional[pd.DataFrame]
+            Diretório para o inventário de postos pluviométricos. Caso None, será obtido
+            o inventário de forma programática e efêmera, sem ser alocado em disco. O
+            inventário é necessário para a obtenção das coordenadas de todos os postos
+            disponíveis. Reitera-se que o inventário plu deve possuir, como index, o código
+            do posto ,e as colunas 'latitude' e 'longitude' para o funcionamento correto do
+            método. Passar o inventário como argumento também faz com que sejam ignorados
+            os argumentos passados para os parametros telemetria e convencional, uma vez que
+            não é possível inferir de antemão a formatação do inventário local.
+
         Returns
         -------
         pd.DataFrame
             Séries de chuva dentro do contorno.
         """
-        if telemetrica and convencional:
-            inventario_telemetricas_inmet = self.inventario(telemetrica=True)
-            inventario_convencionais_inmet = self.inventario(telemetrica=False)
-            inventario_inmet = pd.concat(
-                [inventario_convencionais_inmet, inventario_telemetricas_inmet], axis=0
-            )
-        elif telemetrica and not convencional:
-            inventario_inmet = self.inventario(telemetrica=True)
-        elif not telemetrica and convencional:
-            inventario_inmet = self.inventario(telemetrica=False)
+        if isinstance(inventario_plu, pd.DataFrame):
+            inventario_inmet = inventario_plu
+        else:
+            if telemetrica and convencional:
+                inventario_telemetricas_inmet = self.inventario(telemetrica=True)
+                inventario_convencionais_inmet = self.inventario(telemetrica=False)
+                inventario_inmet = pd.concat(
+                    [inventario_convencionais_inmet, inventario_telemetricas_inmet], axis=0
+                )
+            elif telemetrica and not convencional:
+                inventario_inmet = self.inventario(telemetrica=True)
+            elif not telemetrica and convencional:
+                inventario_inmet = self.inventario(telemetrica=False)
 
         postos_inmet = inventario_inmet[["latitude", "longitude"]]
         gdf_plu = geo.atribuir_geometrias(df=postos_inmet)
