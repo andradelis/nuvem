@@ -3,7 +3,7 @@
 from typing import Union
 
 import geopandas as gpd
-import rioxarray
+import rioxarray  # noqa: F401
 import xarray as xr
 
 
@@ -31,7 +31,7 @@ def converter_longitude_para_limites_180(
         Nome da dimensão y.
 
     Returns
-    --------
+    -------
     Union[xr.Dataset, xr.DataArray]
         Dataset com a dimensão de longitude alterada.
     """

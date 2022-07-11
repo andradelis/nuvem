@@ -1,7 +1,9 @@
 """Módulo para obtenção de dados do Instituto Nacional de Meteorologia."""
 
 import math
-from typing import Dict, Optional
+
+from typing import Dict
+from typing import Optional
 
 import geopandas as gpd
 import pandas as pd
@@ -10,6 +12,7 @@ import timeless
 
 from nuvem import geo
 from nuvem.INMET.config import config
+
 
 # Código baseado no manual de uso da API de estações e dados meteorológicos do INMET: https://portal.inmet.gov.br/manual/manual-de-uso-da-api-estações
 
@@ -37,7 +40,7 @@ class INMET:
             "temperatura média": config.arg_temp_med,
             "umidade mínima": config.arg_umid_min,
             "umidade média": config.arg_umid_med,
-            "velocidade média do vento": config.vento_med,
+            "velocidade média do vento": config.arg_vento_med,
         }
 
     def inventario(self, telemetrica: bool = True) -> pd.DataFrame:
@@ -174,7 +177,7 @@ class INMET:
         telemetrica: bool = True,
         convencional: bool = True,
         freq: str = "D",
-        inventario_plu: Optional[pd.DataFrame] = None
+        inventario_plu: Optional[pd.DataFrame] = None,
     ) -> pd.DataFrame:
         """
         Obtém as séries de chuva dentro de um contorno.
@@ -223,7 +226,8 @@ class INMET:
                 inventario_telemetricas_inmet = self.inventario(telemetrica=True)
                 inventario_convencionais_inmet = self.inventario(telemetrica=False)
                 inventario_inmet = pd.concat(
-                    [inventario_convencionais_inmet, inventario_telemetricas_inmet], axis=0
+                    [inventario_convencionais_inmet, inventario_telemetricas_inmet],
+                    axis=0,
                 )
             elif telemetrica and not convencional:
                 inventario_inmet = self.inventario(telemetrica=True)

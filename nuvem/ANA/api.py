@@ -2,7 +2,9 @@
 
 import calendar
 import xml.etree.ElementTree as ET
-from typing import Optional, Union
+
+from typing import Optional
+from typing import Union
 
 import geopandas as gpd
 import numpy as np
@@ -200,7 +202,6 @@ class ANA:
         -------
             pd.DataFrame: Dataframe contendo a série de vazões do posto, o nível máximo, médio e mínimo de cada mês e a consistência do dado (1: não consistido; 2: consistido)
         """
-
         url_requisicao = f"{config.url_base}/HidroSerieHistorica?CodEstacao={cod_estacao}&dataInicio={data_inicial}&dataFim={data_final}&tipoDados=3&nivelConsistencia="
         resposta = requests.get(url_requisicao)
 
@@ -250,6 +251,7 @@ class ANA:
     ) -> pd.DataFrame:
         """
         Obtenção da série de cotas de um posto fluviométrico.
+
         Caso não haja dados em algum intervalo do período solicitado, retorna todos os dados disponíveis.
 
         Parameters
@@ -312,7 +314,7 @@ class ANA:
         contorno: gpd.geodataframe.GeoDataFrame,
         telemetrica: bool = True,
         convencional: bool = True,
-        inventario_plu: Optional[pd.DataFrame] = None
+        inventario_plu: Optional[pd.DataFrame] = None,
     ) -> pd.DataFrame:
         """
         Obtém as séries de chuva dentro de um contorno.
@@ -344,15 +346,13 @@ class ANA:
             do posto ,e as colunas 'latitude' e 'longitude' para o funcionamento correto do
             método. Passar o inventário como argumento também faz com que sejam ignorados
             os argumentos passados para os parametros telemetria e convencional, uma vez que
-            não é possível inferir de antemão a formatação do inventário local. 
+            não é possível inferir de antemão a formatação do inventário local.
 
         Returns
         -------
         pd.DataFrame
             Séries de chuva dentro do contorno.
         """
-        ############################# ANA #################################
-        # obtém todos os postos pluviométricos da ana
         if isinstance(inventario_plu, pd.DataFrame):
             inventario_ana = inventario_plu
         else:
@@ -360,18 +360,9 @@ class ANA:
                 convencional=convencional, telemetrica=telemetrica
             )
 
-        # seleciona apenas as colunas de latitude e longitude.
-        # neste ponto, são suficientes para fazer o recorte dos pontos dentro do contorno.
         postos_ana = inventario_ana[["latitude", "longitude"]]
-
-        # atribui uma coluna de geometrias ao dataframe.
-        # ? importante para que seja possível extrair os postos dentro da geometria de um contorno.
         gdf_plu = geo.atribuir_geometrias(df=postos_ana)
-
-        # obtém os postos dentro do contorno da área de drenagem.
         selecao_postos = geo.obter_pontos_no_contorno(pontos=gdf_plu, contorno=contorno)
-
-        # obtém a série de chuva pra cada um dos postos
         lista_chuva_postos = list()
         for posto in selecao_postos.index:
             chuva_posto = self.obter_chuva(

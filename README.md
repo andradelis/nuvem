@@ -42,25 +42,114 @@ pip install -r requirements.txt
 ```
 
 ## :arrow_forward: Execução
-### Acesso aos dados disponibilizados na API da Agência Nacional das Águas.
+
+### MERGE - CPTEC/INPE
 
 ```python
-# importação da biblioteca
-from nuvem.ANA import ANA
+import timeless
+import geopandas as gpd
+from nuvem.MERGE.api import merge
 
-# posto fluviométrico Queluz
+data_inicial = timeless.datetime(2022, 1, 1)
+data_final = timeless.today()
+contorno = gpd.read_file(
+    <caminho-para-o-shapefile>
+)
+
+# obter chuva de satélite em uma área
+df_merge = merge.obter_chuva_no_contorno(
+    data_inicial=data_inicial,
+    data_final=data_final,
+    contorno=contorno,
+    media_regional=True
+)
+
+# baixar dados diários do merge em disco
+merge.baixar_dados_diarios(
+    data_inicial=data_inicial,
+    data_final=data_final
+)
+
+# também é possível utilizar o dataset baixado para obter a chuva no contorno
+merge.obter_chuva_no_contorno(
+    contorno=contorno,
+    media_regional=True,
+    dados=<caminho-para-o-dataset-gravado-em-disco>
+)
+
+```
+### ANA
+
+```python
+from nuvem.ANA.api import ana
+import timeless
+import geopandas as gpd
+
+# obtém o inventário de postos pluviométricos da ANA
+inventario_ana_plu = ana.inventario_plu()
+
+# obtém o inventário de postos fluviométricos da ANA
+inventario_ana_flu = ana.inventario_flu()
+
+# obtém a série de vazões e cotas de um posto fluviométrico
 posto = 58235100
+serie = ana.obter_vazoes(posto)
+cotas = ana.obter_cotas(posto)
 
-# inicialização da classe para o uso dos métodos
-ana_ = ANA()
-
-# obtenção da série histórica de vazões do posto
-serie = ana_.obter_vazoes(posto)
-
-# obtenção da série histórica de cotas do posto fluviométrico 58235100
-cotas = ana_.obter_cotas(posto)
+# obtém as séries de chuva dos postos dentro de um contorno
+data_inicial = timeless.datetime(2022, 1, 1)
+data_final = timeless.today()
+contorno = gpd.read_file(
+    <caminho-para-o-shapefile>
+)
+df_ana = ana.obter_chuva_no_contorno(
+    data_final=data_final,
+    data_inicial=data_inicial,
+    contorno=contorno,
+    telemetrica=True,
+    convencional=False
+)
 ```
 
+### INMET
+```python
+from nuvem.INMET.api import inmet
+import timeless
+import geopandas as gpd
+
+# obtém o inventário de estações telemétricas
+inventario_telemetrica = inmet.inventario(telemetrica=True)
+# obtém o inventário de estações convencionais
+inventario_convencional = inmet.inventario(telemetrica=False)
+
+# obtém dados medidos de uma estação em um período
+data_inicial = timeless.datetime(2022, 1, 1)
+data_final = timeless.today()
+
+dados = inmet.obter_dados(
+    data_inicial=data_inicial,
+    data_final=data_final,
+    codigo=A706,
+    freq="D"
+)
+
+# obtém um mapeamento das variáveis disponíveis no 
+# dataframe de medições do INMET
+variaveis = inmet.variaveis()
+
+# seleciona a variável de pressão
+pressao_inmet = dados[variaveis['pressão']]
+
+# obtém as séries de chuva dos postos dentro de um contorno
+contorno = gpd.read_file(
+    <caminho-para-o-shapefile>
+)
+df_inmet = inmet.obter_chuva_no_contorno(
+    data_final=data_final,
+    data_inicial=data_inicial,
+    contorno=contorno,
+)
+```
 ### Cálculo da curva chave de um rio
 ![alt text](https://github.com/andradelis/hidro-os/blob/main/exemplos/curva_chave.png?raw=true)
 

@@ -1,5 +1,7 @@
 """Módulo de funções referentes a utilidades geoespaciais."""
-from typing import Any, List, Optional, Union
+from typing import Any
+from typing import List
+from typing import Optional
 
 import geopandas as gpd
 import pandas as pd
@@ -38,68 +40,6 @@ def atribuir_geometrias(
     gdf = criar_geodataframe(df=df, coordenadas=coordenadas).set_crs(crs)
 
     return gdf
-
-
-def dissolver(contorno: gpd.geodataframe.GeoDataFrame) -> gpd.geodataframe.GeoDataFrame:
-    """
-    Dissolve um geodataframe.
-
-    Parameters
-    -------
-    contorno : gpd.geodataframe.GeoDataFrame
-        Dataframe de coordenadas.
-
-    Returns
-    -------
-    gpd.geodataframe.GeoDataFrame
-        Dataframe de coordenadas.
-    """
-    crs = contorno.crs
-    return contorno.dissolve().set_crs(crs=crs)
-
-
-def obter_intersecao(
-    contorno: gpd.geodataframe.GeoDataFrame, mascara: gpd.geodataframe.GeoDataFrame
-) -> gpd.geodataframe.GeoDataFrame:
-    """
-    Obtém a porção do contorno de entrada que está dentro da máscara.
-
-    Parameters
-    -------
-    contorno : gpd.geodataframe.GeoDataFrame
-        Geodataframe do contorno de entrada.
-
-    mascara : gpd.geodataframe.GeoDataFrame
-        Geodataframe da máscara.
-
-    Returns
-    -------
-    gpd.geodataframe.GeoDataFrame
-        Porção do contorno de entrada dentro da máscara.
-    """
-    return gpd.overlay(contorno, mascara, how="intersection")
-
-
-def converter_epsg(
-    contorno: gpd.geodataframe.GeoDataFrame, epsg: int
-) -> gpd.geodataframe.GeoDataFrame:
-    """
-    Converte um geodataframe para um outro sistema de coordenadas.
-
-    Parameters
-    -------
-    contorno : gpd.geodataframe.GeoDataFrame
-        Dataframe de coordenadas.
-
-    epsg : int
-        Código do sistema de coordenadas.
-
-    Returns
-    -------
-    gpd.geodataframe.GeoDataFrame
-        Dataframe de coordenadas.
-    """
-    return contorno.to_crs(epsg=epsg)
 
 
 def obter_pontos_no_contorno(
@@ -141,7 +81,7 @@ def zipar_coordenadas(
     A lista de saída contém objetos do tipo shapely.geometry.Point.
 
     Parameters
-    -------
+    ----------
     latitude : gpd.geoseries.GeoSeries
         Série de latitudes.
 
@@ -163,7 +103,7 @@ def criar_geodataframe(
     Cria um geodataframe a partir de uma lista de coordenadas.
 
     Parameters
-    -------
+    ----------
     coordenadas : List[Any]
         Lista de coordenadas.
 
