@@ -91,6 +91,14 @@ inventario_ana_plu = ana.inventario_plu()
 # obtém o inventário de postos fluviométricos da ANA
 inventario_ana_flu = ana.inventario_flu()
 
+# obtém os postos de chuva que estão localizados dentro de um contorno
+contorno = gpd.read_file(
+    <caminho-para-o-shapefile>
+)
+postos_ana = inventario_ana_plu[["latitude", "longitude"]]
+gdf_plu = geo.atribuir_geometrias(df=postos_ana)
+postos = geo.obter_pontos_no_contorno(pontos=gdf_plu, contorno=contorno)
+
 # obtém a série de vazões e cotas de um posto fluviométrico
 posto = 58235100
 serie = ana.obter_vazoes(posto)
