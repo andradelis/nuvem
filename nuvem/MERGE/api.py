@@ -101,6 +101,7 @@ class MERGE:
         media_regional: bool = False,
         dados: Optional[Union[xr.Dataset, xr.DataArray]] = None,
         dir_tmp: Path = Path("/tmp/merge"),
+        dimensao_tempo: str = "valid_time",
     ) -> Union[xr.Dataset, xr.DataArray, pd.DataFrame]:
         """
         Obtém a chuva do MERGE dentro de um contorno.
@@ -134,7 +135,7 @@ class MERGE:
             Chuva do MERGE dentro do contorno.
         """
         if isinstance(dados, xr.Dataset) or isinstance(dados, xr.DataArray):
-            ds = dados
+            ds = dados.sel(**{dimensao_tempo: slice(data_inicial, data_final)})
         else:
             self.baixar_dados_diarios(
                 data_inicial=data_inicial, data_final=data_final, dir_tmp=dir_tmp
@@ -142,7 +143,7 @@ class MERGE:
             arquivos_merge = list(dir_tmp.glob("*.grib2"))
             ds = xr.open_mfdataset(
                 arquivos_merge,
-                concat_dim="valid_time",
+                concat_dim=dimensao_tempo,
                 combine="nested",
                 engine="cfgrib",
             ).prec
