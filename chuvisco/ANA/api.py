@@ -4,11 +4,13 @@ import calendar
 import xml.etree.ElementTree as ET
 from typing import Optional, Union
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import requests
 import timeless
 
+from chuvisco import geo
 from chuvisco.ANA import utils
 from chuvisco.ANA.config import config
 
@@ -165,8 +167,11 @@ class ANA:
 
         try:
             serie = pd.concat(df_mes)
+            serie.index = pd.to_datetime(serie.index)
             serie.sort_index(inplace=True)
             serie[codigo] = pd.to_numeric(serie[codigo])
+            # ! Algumas datas repetidas. Investigar.
+            serie = serie.loc[~serie.index.duplicated(keep="first")]
         except (ValueError):
             serie = pd.DataFrame([], columns=[codigo])
 
@@ -196,7 +201,7 @@ class ANA:
             pd.DataFrame: Dataframe contendo a série de vazões do posto, o nível máximo, médio e mínimo de cada mês e a consistência do dado (1: não consistido; 2: consistido)
         """
 
-        url_requisicao = f"{self.url_base}/HidroSerieHistorica?CodEstacao={cod_estacao}&dataInicio={data_inicial}&dataFim={data_final}&tipoDados=3&nivelConsistencia="
+        url_requisicao = f"{config.url_base}/HidroSerieHistorica?CodEstacao={cod_estacao}&dataInicio={data_inicial}&dataFim={data_final}&tipoDados=3&nivelConsistencia="
         resposta = requests.get(url_requisicao)
 
         tree = ET.ElementTree(ET.fromstring(resposta.content))
@@ -262,7 +267,7 @@ class ANA:
         -------
             pd.DataFrame: Dataframe contendo a série de cotas, em metros, do nível de água no posto fluviométrico analisado.
         """
-        url_requisicao = f"{self.url_base}/HidroSerieHistorica?CodEstacao={cod_estacao}&dataInicio={data_inicial}&dataFim={data_final}&tipoDados=1&nivelConsistencia="
+        url_requisicao = f"{config.url_base}/HidroSerieHistorica?CodEstacao={cod_estacao}&dataInicio={data_inicial}&dataFim={data_final}&tipoDados=1&nivelConsistencia="
         resposta = requests.get(url_requisicao)
 
         tree = ET.ElementTree(ET.fromstring(resposta.content))
@@ -299,6 +304,71 @@ class ANA:
         serie.cota = serie.cota / 100
 
         return serie
+
+    def obter_chuva_no_contorno(
+        self,
+        data_inicial: timeless.datetime,
+        data_final: timeless.datetime,
+        contorno: gpd.geodataframe.GeoDataFrame,
+        telemetrica: bool = True,
+        convencional: bool = True,
+    ) -> pd.DataFrame:
+        """
+        Obtém as séries de chuva dentro de um contorno.
+
+        Parameters
+        ----------
+        data_inicial : timeless.datetime
+            Data inicial da série.
+
+        data_final : timeless.datetime
+            Data final da série.
+
+        contorno : gpd.geodataframe.GeoDataFrame
+            Contorno de onde serão extraídos os postos pluviométricos.
+
+        telemetrica : bool
+            Se as estações são telemétricas. Caso telemetrica=True e convencional=True,
+            todas as estações serão retornadas.
+
+        convencional : bool
+            Se as estações são convencionais. Caso telemetrica=True e convencional=True,
+            todas as estações serão retornadas.
+
+        Returns
+        -------
+        pd.DataFrame
+            Séries de chuva dentro do contorno.
+        """
+        ############################# ANA #################################
+        # obtém todos os postos pluviométricos da ana
+        inventario_ana = self.inventario_plu(
+            convencional=convencional, telemetrica=telemetrica
+        )
+
+        # seleciona apenas as colunas de latitude e longitude.
+        # neste ponto, são suficientes para fazer o recorte dos pontos dentro do contorno.
+        postos_ana = inventario_ana[["latitude", "longitude"]]
+
+        # atribui uma coluna de geometrias ao dataframe.
+        # ? importante para que seja possível extrair os postos dentro da geometria de um contorno.
+        gdf_plu = geo.atribuir_geometrias(df=postos_ana)
+
+        # obtém os postos dentro do contorno da área de drenagem.
+        selecao_postos = geo.obter_pontos_no_contorno(pontos=gdf_plu, contorno=contorno)
+
+        # obtém a série de chuva pra cada um dos postos
+        lista_chuva_postos = list()
+        for posto in selecao_postos.index:
+            chuva_posto = self.obter_chuva(
+                codigo=posto,
+                data_inicial=data_inicial,
+                data_final=data_final,
+            )
+            # ! Algumas datas repetidas. Investigar.
+            chuva_posto = chuva_posto.loc[~chuva_posto.index.duplicated(keep="first")]
+            lista_chuva_postos.append(chuva_posto)
+        return pd.concat(lista_chuva_postos, axis=1)
 
 
 ana = ANA()
