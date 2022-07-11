@@ -372,6 +372,7 @@ class ANA:
             )
             # ! Algumas datas repetidas. Investigar.
             chuva_posto = chuva_posto.loc[~chuva_posto.index.duplicated(keep="first")]
+            chuva_posto.index = pd.to_datetime(chuva_posto.index)
             lista_chuva_postos.append(chuva_posto)
         return pd.concat(lista_chuva_postos, axis=1)
 

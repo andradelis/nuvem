@@ -187,6 +187,7 @@ class MERGE:
                 df.rename(columns={"prec": nome_posto_artificial}, inplace=True)
                 df.index.name = "data"
                 df.index = df.index.date
+                df.index = pd.to_datetime(df.index)
                 df = df.sort_index()
                 dfs_merge.append(df)
 
