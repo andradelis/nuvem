@@ -1,4 +1,6 @@
-from typing import List, Tuple
+"""Cálculos hidrológicos."""
+from typing import List
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -262,7 +264,7 @@ def racional(C: float, i: float, A: float) -> float:
         Área da bacia, em km²
 
     Returns
-    --------
+    -------
     float
         Vazão superficial máxima, em m³/s.
     """

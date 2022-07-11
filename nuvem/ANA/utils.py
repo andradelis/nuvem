@@ -1,8 +1,8 @@
 """Módulo de utilidades para manipulação e obtenção de dados da API da ANA."""
 
 import xml.etree.ElementTree as ET
+
 from typing import Union
-from xml.dom.minidom import Element
 
 import pandas as pd
 import requests
@@ -49,9 +49,21 @@ def obter_tipo_medicao(
 
 
 def processar_inventario(
-    root: Element,
+    root: ET.Element,
 ) -> pd.DataFrame:
+    """
+    Função de comodidade para processamento do inventário da ANA.
 
+    Parameters
+    ----------
+    root : ET.Element
+        Objeto xml obtido da API da ANA.
+
+    Returns
+    -------
+    pd.DataFrame
+        Dataframe contendo o inventário da ANA.
+    """
     estacoes = list()
     for estacao in root.iter("Table"):
         dados = {
@@ -82,7 +94,7 @@ def obter_inventario(
     telemetrica: bool,
     convencional: bool,
     tipo_estacao: Union[str, int],
-    codigo: str,
+    codigo: Union[str, int],
 ) -> pd.DataFrame:
     """
     Obtém o inventário de um posto pluviométrico ou fluviométrico.

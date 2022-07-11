@@ -2,8 +2,12 @@
 
 import queue
 import threading
+
 from pathlib import Path
-from typing import Optional, Union
+from typing import Any
+from typing import Mapping
+from typing import Optional
+from typing import Union
 
 import geopandas as gpd
 import pandas as pd
@@ -16,7 +20,10 @@ from nuvem.MERGE.config import config
 
 
 class MERGE:
+    """Classe de mapeamento de funções do MERGE."""
+
     def __init__(self) -> None:
+        """Construtor da classe."""
         pass
 
     def baixar_dados_diarios(
@@ -40,6 +47,7 @@ class MERGE:
             Diretório temporário onde será baixado o dataset do MERGE. O dataset é obtido através do
             download do dataset em um diretório e posterior abertura do dataset para retorno da função.
         """
+
         def func(q, data):
             """Centro da função. É executada dentro das threads."""
             while True:
@@ -121,19 +129,22 @@ class MERGE:
             download do dataset em um diretório e posterior abertura do dataset para retorno da função.
 
         Returns
-        ----------
+        -------
         Union[xr.Dataset, xr.DataArray, pd.DataFrame]
             Chuva do MERGE dentro do contorno.
         """
         if isinstance(dados, xr.Dataset) or isinstance(dados, xr.DataArray):
             ds = dados
         else:
-            self.obter_dados_diarios(
+            self.baixar_dados_diarios(
                 data_inicial=data_inicial, data_final=data_final, dir_tmp=dir_tmp
             )
             arquivos_merge = list(dir_tmp.glob("*.grib2"))
             ds = xr.open_mfdataset(
-                arquivos_merge, concat_dim="valid_time", combine="nested", engine="cfgrib"
+                arquivos_merge,
+                concat_dim="valid_time",
+                combine="nested",
+                engine="cfgrib",
             ).prec
 
         ds_lon_corrigida = grade.converter_longitude_para_limites_180(
@@ -147,9 +158,13 @@ class MERGE:
             dataset_recortado = grade.media_regional(
                 dataset=dataset_recortado,
             )
-            dataset_recortado = dataset_recortado.drop(
-                ["time", "step", "surface", "spatial_ref"]
-            )
+            variaveis_a_dropar: Optional[Mapping[Any, Any]] = [
+                "time",
+                "step",
+                "surface",
+                "spatial_ref",
+            ]
+            dataset_recortado = dataset_recortado.drop(variaveis_a_dropar)
             df_merge = dataset_recortado.to_dataframe()
             df_merge.rename(columns={"prec": "merge"}, inplace=True)
             df_merge.index.name = "data"
