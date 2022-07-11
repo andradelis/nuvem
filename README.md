@@ -11,22 +11,25 @@
 
 ## :scroll: Descrição
 
-Repositório em constante construção destinado a compartilhar aprendizados na área de hidrologia. Os métodos encontrados nos módulos disponíveis neste repositório são ferramentas que utilizo em meus estudos. Sinta-se livre para contribuir! :)
+Wrapper user-friendly para facilitar o acesso aos dados hidrometeorológicos de grandes centros.
+O `nuvem` conta com diversas funções para obtenção e manipulação de dados em grade e séries temporais.
+Contribuições são bem vindas!
 
+Aqui você vai encontrar:
 
-## :sparkles: Funcionalidades
+:sparkles: Módulos para obtenção de dados de grandes centros!
+    1. API da ANA;
+    2. API do INMET;
+    3. FTP do CPTEC para dados do MERGE.
 
-:heavy_check_mark: Consumo da API da ANA: obtenção de cotas e séries de vazão de um posto fluviométrico
+:sparkles: Diversos cálculos hidrológicos
+    1. Hidrograma de cheias por convolução;
+    2. Determinação da curva chave;
+    3. Fator de forma;
+    4. Coeficiente de runoff;
+    5. etc...
 
-:heavy_check_mark: Hidrograma de cheias por convolução
-
-:heavy_check_mark: Determinação da curva chave
-
-:heavy_check_mark: Cálculos hidrológicos básicos: fator de forma, coeficiente de runoff...
-
-## :warning: Pré-requisitos
-
-- [Python](https://www.python.org/) (obrigatório)
+:sparkles: Módulos de utilidade para lidar com dados em grade e séries temporais.
 
 ## :cd: Como instalar
 
@@ -38,7 +41,10 @@ git clone git@github.com:andradelis/nuvem.git
 cd nuvem
 
 # 3. instale as dependências
-pip install -r requirements.txt
+bash conda-install.bash
+
+# 4. Ative o ambiente do projeto!
+conda activate nuvem
 ```
 
 ## :arrow_forward: Execução
