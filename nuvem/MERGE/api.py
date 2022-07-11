@@ -147,39 +147,35 @@ class MERGE:
         return dataset_recortado
 
     def obter_postos_artificiais(
-        self,
-        dataset: Union[xr.Dataset, xr.DataArray],
-        prefixo: str = "PMERGE"
+        self, dataset: Union[xr.Dataset, xr.DataArray], prefixo: str = "PMERGE"
     ) -> pd.DataFrame:
         """
         Obtém postos artificiais do merge.
-        
+
         Para a determinação de postos artificiais, cada ponto de grade é considerado um posto.
         O método retorna um dataframe onde cada coluna representa um ponto de grade, nomeado
         com um prefixo passado como parametro, a longitude e a latitude do posto.
-        
+
         Parameters
         ----------
         dataset : Union[xr.Dataset, xr.DataArray]
             Dataset do MERGE.
-            
+
         prefixo : str
             Prefixo a ser passado no nome do posto artificial.
-            
+
         Returns
         -------
         pd.DataFrame
             Série temporal de cada ponto de grade dentro do dataset.
-        """    
+        """
         dfs_merge = list()
         for latitude in dataset.latitude.values:
             ds_na_latitude = dataset.sel(latitude=latitude).dropna(dim="longitude")
             for longitude in ds_na_latitude.longitude.values:
                 ds_na_coordenada = ds_na_latitude.sel(longitude=longitude)
 
-                nome_posto_artificial = (
-                    f"{prefixo}{str(round(longitude, 2)).replace('.', '_')}{str(round(latitude, 2)).replace('.', '_')}"
-                )
+                nome_posto_artificial = f"{prefixo}{str(round(longitude, 2)).replace('.', '_')}{str(round(latitude, 2)).replace('.', '_')}"
                 ds_na_coordenada = ds_na_coordenada.drop(
                     ["longitude", "latitude", "time", "step", "surface", "spatial_ref"]
                 )
