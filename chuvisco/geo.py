@@ -10,6 +10,7 @@ def atribuir_geometrias(
     df: pd.DataFrame,
     xdim: str = "longitude",
     ydim: str = "latitude",
+    crs: str = "EPSG:4326",
 ) -> gpd.geodataframe.GeoDataFrame:
     """
     Atribui uma coluna de geometrias ao dataframe.
@@ -34,9 +35,10 @@ def atribuir_geometrias(
     latitude = df[ydim]
     longitude = df[xdim]
     coordenadas = zipar_coordenadas(latitude=latitude, longitude=longitude)
-    gdf = criar_geodataframe(df=df, coordenadas=coordenadas)
+    gdf = criar_geodataframe(df=df, coordenadas=coordenadas).set_crs(crs)
 
     return gdf
+
 
 def dissolver(contorno: gpd.geodataframe.GeoDataFrame) -> gpd.geodataframe.GeoDataFrame:
     """
@@ -102,22 +104,17 @@ def converter_epsg(
 
 def obter_pontos_no_contorno(
     pontos: gpd.geodataframe.GeoDataFrame,
-    contorno: Union[
-        shapely.geometry.multipolygon.MultiPolygon, shapely.geometry.polygon.Polygon
-    ],
+    contorno: gpd.geodataframe.GeoDataFrame,
 ) -> gpd.geodataframe.GeoDataFrame:
     """
-    Obtém as coordenadas de um dataframe dentro de um contorno.
+    Obtém os pontos de um dataframe dentro de um contorno.
 
     Parameters
     ----------
     pontos : gpd.geodataframe.GeoDataFrame
         Série de geometrias dos pontos.
 
-    contorno : Union[
-        shapely.geometry.multipolygon.MultiPolygon,
-        shapely.geometry.polygon.Polygon
-    ]
+    contorno : gpd.geodataframe.GeoDataFrame
         Geometria do polígono de entrada.
 
     Returns
@@ -125,8 +122,14 @@ def obter_pontos_no_contorno(
     gpd.geodataframe.GeoDataFrame
         Geodataframe de pontos dentro do contorno.
     """
-    recorte = pontos.geometry.within(contorno)
-    return pontos.loc[recorte]
+    pontos_dentro = gpd.tools.sjoin(pontos, contorno, predicate="within", how="right")
+    nome_index = pontos.index.name
+    if nome_index:
+        pontos_dentro.rename(columns={"index_left": nome_index}, inplace=True)
+        pontos_dentro.set_index(nome_index, inplace=True)
+    else:
+        pontos_dentro.set_index("index_left", inplace=True)
+    return pontos_dentro
 
 
 def zipar_coordenadas(
