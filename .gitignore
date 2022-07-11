@@ -1,0 +1,8 @@
+__pycache__
+arquivos/
+*.shp
+*.cpg
+*.prj
+*.shx
+*.dbf
+*.csv
