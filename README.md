@@ -62,21 +62,13 @@ contorno = gpd.read_file(
     <caminho-para-o-shapefile>
 )
 
-# obter chuva de satélite em uma área
-df_merge = merge.obter_chuva_no_contorno(
-    data_inicial=data_inicial,
-    data_final=data_final,
-    contorno=contorno,
-    media_regional=True
-)
-
 # baixar dados diários do merge em disco
 merge.baixar_dados_diarios(
     data_inicial=data_inicial,
     data_final=data_final
 )
 
-# também é possível utilizar o dataset baixado para obter a chuva no contorno
+# utilizar o dataset baixado para obter a chuva no contorno
 merge.obter_chuva_no_contorno(
     contorno=contorno,
     media_regional=True,
